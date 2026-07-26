@@ -1,0 +1,66 @@
+<div id="di">
+  <h3 id="di-title">{{Title}}</h3>
+  <div id="di-question">{{Question}}</div>
+  <div id="di-description">{{Description}}</div>
+  <div id="di-board"></div>
+  <div id="di-categories"></div>
+</div>
+<script type="application/json" id="di-board-data">{{Board}}</script>
+<script type="application/json" id="di-categories-data">{{Categories}}</script>
+
+<script>
+(function () {
+  const board = JSON.parse(document.getElementById('di-board-data').textContent || '{}');
+  const categories = JSON.parse(document.getElementById('di-categories-data').textContent || '[]');
+
+  sessionStorage.removeItem('di-selected');
+  const selected = new Array(categories.length).fill(null);
+
+  const boardEl = document.getElementById('di-board');
+  if (board.gridIsBlack) boardEl.classList.add('dark');
+  (board.points || []).forEach(function (point) {
+    const dot = document.createElement('div');
+    dot.className = 'di-point';
+    dot.style.left = (point.x * 100) + '%';
+    dot.style.top = (point.y * 100) + '%';
+    dot.style.background = point.color;
+    boardEl.appendChild(dot);
+  });
+
+  const categoriesEl = document.getElementById('di-categories');
+  categories.forEach(function (category, i) {
+    const row = document.createElement('div');
+    row.className = 'di-category';
+
+    const label = document.createElement('div');
+    label.className = 'di-category-label';
+    label.textContent = category.label;
+
+    const select = document.createElement('select');
+    select.className = 'di-category-select';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '- choose -';
+    select.appendChild(placeholder);
+
+    category.options.forEach(function (option) {
+      const optionEl = document.createElement('option');
+      optionEl.value = option;
+      optionEl.textContent = option;
+      select.appendChild(optionEl);
+    });
+
+    select.addEventListener('change', function () {
+      selected[i] = select.value || null;
+      sessionStorage.setItem('di-selected', JSON.stringify(selected));
+    });
+
+    row.appendChild(label);
+    row.appendChild(select);
+    categoriesEl.appendChild(row);
+  });
+
+  sessionStorage.setItem('di-selected', JSON.stringify(selected));
+})();
+</script>

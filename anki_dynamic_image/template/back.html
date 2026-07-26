@@ -1,0 +1,70 @@
+<div id="di">
+  <h3 id="di-title">{{Title}}</h3>
+  <div id="di-question">{{Question}}</div>
+  <div id="di-description">{{Description}}</div>
+  <div id="di-board"></div>
+  <div id="di-summary"></div>
+  <div id="di-results"></div>
+  <div id="di-note">{{Explanation}}</div>
+</div>
+<script type="application/json" id="di-board-data">{{Board}}</script>
+<script type="application/json" id="di-categories-data">{{Categories}}</script>
+
+<script>
+(function () {
+  const board = JSON.parse(document.getElementById('di-board-data').textContent || '{}');
+  const categories = JSON.parse(document.getElementById('di-categories-data').textContent || '[]');
+  const stored = sessionStorage.getItem('di-selected');
+  const selected = stored ? JSON.parse(stored) : new Array(categories.length).fill(null);
+
+  const boardEl = document.getElementById('di-board');
+  if (board.gridIsBlack) boardEl.classList.add('dark');
+  (board.points || []).forEach(function (point) {
+    const dot = document.createElement('div');
+    dot.className = 'di-point';
+    dot.style.left = (point.x * 100) + '%';
+    dot.style.top = (point.y * 100) + '%';
+    dot.style.background = point.color;
+    boardEl.appendChild(dot);
+  });
+
+  const resultsEl = document.getElementById('di-results');
+  let correct = 0;
+
+  categories.forEach(function (category, i) {
+    const picked = selected[i];
+    const isCorrect = picked === category.correct;
+    if (isCorrect) correct++;
+
+    const row = document.createElement('div');
+    row.className = 'di-result ' + (isCorrect ? 'correct' : 'wrong');
+
+    const label = document.createElement('div');
+    label.className = 'di-result-label';
+    label.textContent = category.label;
+
+    const icon = document.createElement('div');
+    icon.className = 'di-result-icon';
+    icon.textContent = isCorrect ? '✓' : '✗';
+
+    const value = document.createElement('div');
+    value.className = 'di-result-value';
+    value.textContent = picked || '(no answer)';
+
+    row.appendChild(label);
+    row.appendChild(value);
+    row.appendChild(icon);
+
+    if (!isCorrect) {
+      const correctEl = document.createElement('div');
+      correctEl.className = 'di-result-correct';
+      correctEl.textContent = 'should be: ' + category.correct;
+      row.appendChild(correctEl);
+    }
+
+    resultsEl.appendChild(row);
+  });
+
+  document.getElementById('di-summary').textContent = correct + ' / ' + categories.length + ' correct';
+})();
+</script>
